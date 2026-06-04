@@ -44,10 +44,10 @@ Always be concise, careful, and think step-by-step before deploying changes."""
     agent = initialize_agent(
         tools=tools,
         llm=llm,
-        agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+        agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
         memory=memory,
         verbose=True,
-        agent_kwargs={"system_message": system_message}
+        agent_kwargs={"prefix": system_message}
     )
 
     return agent
