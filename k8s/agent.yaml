@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smarthouse-agent
+  namespace: smarthouse
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smarthouse-agent
+  template:
+    metadata:
+      labels:
+        app: smarthouse-agent
+    spec:
+      serviceAccountName: smarthouse-agent-sa
+      containers:
+      - name: smarthouse-agent
+        image: ghcr.io/dansriete/smarthouse-agent:latest
+        imagePullPolicy: Always
+        env:
+        - name: TELEGRAM_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: smarthouse-agent-secrets
+              key: telegram-bot-token
+        - name: TELEGRAM_USER_ID
+          valueFrom:
+            secretKeyRef:
+              name: smarthouse-agent-secrets
+              key: telegram-user-id
+        - name: GEMINI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: smarthouse-agent-secrets
+              key: gemini-api-key
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: smarthouse-agent-secrets
+              key: github-token
+        volumeMounts:
+        - name: agent-data
+          mountPath: /app/data
+      volumes:
+      - name: agent-data
+        emptyDir: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: smarthouse-agent-egress
+  namespace: smarthouse
+spec:
+  podSelector:
+    matchLabels:
+      app: smarthouse-agent
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+    ports:
+    - protocol: TCP
+      port: 443 # Allow HTTPS strictly for Telegram, Gemini, Github APIs
+  - to:
+    - ipBlock:
+        cidr: 192.168.0.201/32
+    ports:
+    - protocol: TCP
+      port: 31880 # Allow HTTP exclusively for Node-RED
+    - protocol: TCP
+      port: 24867 # Allow HTTP exclusively for internal smarthouse API

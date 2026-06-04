@@ -1,0 +1,8 @@
+python-telegram-bot==21.1.1
+langchain==0.1.16
+langchain-google-genai==1.0.3
+APScheduler==3.10.4
+requests==2.31.0
+SQLAlchemy==2.0.29
+kubernetes==28.1.0
+PyGithub==2.1.1
