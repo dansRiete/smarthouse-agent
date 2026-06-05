@@ -10,17 +10,19 @@ from tools.mqtt_tool import publish_mqtt_message
 from tools.postgres_tool import execute_postgres_query
 from tools.bash_tool import run_bash_command
 
+from langchain_community.chat_message_histories import SQLChatMessageHistory
+
 def create_agent():
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY is not set.")
-
-    # Initialize the LLM
+        raise ValueError("GEMINI_API_KEY not set")
+    
+    # Initialize the Gemini model
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-pro",
-        max_retries=1,
-        temperature=0.1,
-        google_api_key=api_key
+        temperature=0.2,
+        google_api_key=api_key,
+        convert_system_message_to_human=True
     )
 
     # Define tools available to the agent
@@ -36,17 +38,25 @@ def create_agent():
         run_bash_command
     ]
 
-    # Initialize memory so it remembers the conversation
+    # Initialize PERSISTENT memory so it remembers the conversation across restarts
+    chat_message_history = SQLChatMessageHistory(
+        session_id="smarthouse_telegram",
+        connection_string="sqlite:////app/data/chat_history.db"
+    )
+
     memory = ConversationBufferWindowMemory(
         memory_key="chat_history",
         k=10,
-        return_messages=True
+        return_messages=True,
+        chat_memory=chat_message_history
     )
 
     # Read the master agent manual to inject directly into its brain
     manual_path = os.path.join(os.path.dirname(__file__), "AGENT_MANUAL.md")
     with open(manual_path, "r") as f:
         master_manual = f.read()
+        # Escape curly braces so LangChain doesn't treat JSON examples as prompt variables
+        master_manual = master_manual.replace("{", "{{").replace("}", "}}")
 
     system_prompt = f"""You are the autonomous SmartHouse AI agent.
 You have access to tools to read/deploy Node-RED flows, publish MQTT messages to control devices, execute PostgreSQL queries to analyze history, check Kubernetes status, and run bash scripts.
