@@ -16,7 +16,7 @@ def create_agent():
 
     # Initialize the LLM
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-pro",
         max_retries=1,
         temperature=0.1,
         google_api_key=api_key
@@ -41,8 +41,21 @@ def create_agent():
         return_messages=True
     )
 
+    system_prompt = """You are the autonomous SmartHouse AI agent.
+You have access to tools to read/deploy Node-RED flows, publish MQTT messages to control devices, execute PostgreSQL queries to analyze history, check Kubernetes status, and read/write the codebase.
+
+CRITICAL INSTRUCTION: If you are ever confused about how a device works, what the database schema is, or how the automation logic is structured, YOU MUST use your `read_github_file` tool to fetch the `CLAUDE.md` file from the `dansRiete/smarthouse-controller` repository on the `master` branch. This file contains the complete developer manual for the house and the exact database schema you need for SQL queries.
+
+When asked to calculate device usage (e.g. AC hours):
+1. Use `read_github_file` to read `CLAUDE.md` if you need to recall the exact schema.
+2. Query `main.event` where `device = 'AC'` and `type = 'switch'`.
+3. The `data` column is JSON containing the `state` ('ON' or 'OFF').
+4. Sort by `utc_time` to calculate durations between 'ON' and 'OFF' events.
+
+Always be concise, careful, and think step-by-step before deploying changes."""
+
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "You are the autonomous SmartHouse AI agent. You have access to tools to read/deploy Node-RED flows, publish MQTT messages to control devices, execute PostgreSQL queries to analyze history, check Kubernetes status, and read/write the codebase. Always be concise, careful, and think step-by-step before deploying changes."),
+        ("system", system_prompt),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
