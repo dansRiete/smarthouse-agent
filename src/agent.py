@@ -6,6 +6,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from tools.node_red import read_node_red_flows, deploy_node_red_flows
 from tools.kubernetes_tool import get_pod_status, restart_deployment
 from tools.github_tool import read_github_file, create_pull_request
+from tools.mqtt_tool import publish_mqtt_message
+from tools.postgres_tool import execute_postgres_query
 
 def create_agent():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -15,7 +17,8 @@ def create_agent():
     # Initialize the LLM
     llm = ChatGoogleGenerativeAI(
         model="gemini-2.5-flash",
-        temperature=0,
+        max_retries=1,
+        temperature=0.1,
         google_api_key=api_key
     )
 
@@ -26,7 +29,9 @@ def create_agent():
         get_pod_status,
         restart_deployment,
         read_github_file,
-        create_pull_request
+        create_pull_request,
+        publish_mqtt_message,
+        execute_postgres_query
     ]
 
     # Initialize memory so it remembers the conversation
@@ -36,13 +41,8 @@ def create_agent():
         return_messages=True
     )
 
-    system_message = """You are the autonomous SRE and Smart Home Agent for Alex's SmartHouse.
-Your goal is to help maintain, debug, and monitor the home automation infrastructure.
-You have access to tools that allow you to read Node-RED flows, check Kubernetes status, and read/write the codebase.
-Always be concise, careful, and think step-by-step before deploying changes."""
-
     prompt = ChatPromptTemplate.from_messages([
-        ("system", system_message),
+        ("system", "You are the autonomous SmartHouse AI agent. You have access to tools to read/deploy Node-RED flows, publish MQTT messages to control devices, execute PostgreSQL queries to analyze history, check Kubernetes status, and read/write the codebase. Always be concise, careful, and think step-by-step before deploying changes."),
         MessagesPlaceholder(variable_name="chat_history"),
         ("human", "{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),

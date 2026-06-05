@@ -68,7 +68,7 @@ def main():
     application.bot_data['agent'] = smart_agent
 
     application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
     # Setup Watchdog Scheduler
     scheduler = AsyncIOScheduler()
