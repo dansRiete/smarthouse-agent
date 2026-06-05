@@ -43,20 +43,15 @@ def create_agent():
         return_messages=True
     )
 
-    system_prompt = """You are the autonomous SmartHouse AI agent.
-You have access to tools to read/deploy Node-RED flows, publish MQTT messages to control devices, execute PostgreSQL queries to analyze history, check Kubernetes status, and read/write the codebase.
+    # Read the master agent manual to inject directly into its brain
+    manual_path = os.path.join(os.path.dirname(__file__), "AGENT_MANUAL.md")
+    with open(manual_path, "r") as f:
+        master_manual = f.read()
 
-CRITICAL INSTRUCTION: You now have a `run_bash_command` tool. You can use this to execute arbitrary bash commands inside your secure Linux sandbox container. 
-If you need to search the entire project source code or figure out how things work, you MUST use `run_bash_command` to run `git clone https://github.com/dansRiete/smarthouse-controller.git /tmp/smarthouse` and then use `grep` or `cat` inside `/tmp/smarthouse` to explore the codebase! This makes you incredibly capable.
-If you are confused about database schema, read `/tmp/smarthouse/CLAUDE.md`.
+    system_prompt = f"""You are the autonomous SmartHouse AI agent.
+You have access to tools to read/deploy Node-RED flows, publish MQTT messages to control devices, execute PostgreSQL queries to analyze history, check Kubernetes status, and run bash scripts.
 
-When asked to calculate device usage (e.g. AC hours):
-1. Use `read_github_file` to read `CLAUDE.md` if you need to recall the exact schema.
-2. Query `main.event` where `device = 'AC'` and `type = 'switch'`.
-3. The `data` column is JSON containing the `state` ('ON' or 'OFF').
-4. Sort by `utc_time` to calculate durations between 'ON' and 'OFF' events.
-
-Always be concise, careful, and think step-by-step before deploying changes."""
+{master_manual}"""
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
