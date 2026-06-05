@@ -79,3 +79,13 @@ spec:
       port: 31880 # Allow HTTP exclusively for Node-RED
     - protocol: TCP
       port: 24867 # Allow HTTP exclusively for internal smarthouse API
+    - protocol: TCP
+      port: 24870 # Allow PostgreSQL
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/8
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 1883
