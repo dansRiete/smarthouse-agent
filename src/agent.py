@@ -8,6 +8,7 @@ from tools.kubernetes_tool import get_pod_status, restart_deployment
 from tools.github_tool import read_github_file, create_pull_request
 from tools.mqtt_tool import publish_mqtt_message
 from tools.postgres_tool import execute_postgres_query
+from tools.bash_tool import run_bash_command
 
 def create_agent():
     api_key = os.getenv("GEMINI_API_KEY")
@@ -31,7 +32,8 @@ def create_agent():
         read_github_file,
         create_pull_request,
         publish_mqtt_message,
-        execute_postgres_query
+        execute_postgres_query,
+        run_bash_command
     ]
 
     # Initialize memory so it remembers the conversation
@@ -44,7 +46,9 @@ def create_agent():
     system_prompt = """You are the autonomous SmartHouse AI agent.
 You have access to tools to read/deploy Node-RED flows, publish MQTT messages to control devices, execute PostgreSQL queries to analyze history, check Kubernetes status, and read/write the codebase.
 
-CRITICAL INSTRUCTION: If you are ever confused about how a device works, what the database schema is, or how the automation logic is structured, YOU MUST use your `read_github_file` tool to fetch the `CLAUDE.md` file from the `dansRiete/smarthouse-controller` repository on the `master` branch. This file contains the complete developer manual for the house and the exact database schema you need for SQL queries.
+CRITICAL INSTRUCTION: You now have a `run_bash_command` tool. You can use this to execute arbitrary bash commands inside your secure Linux sandbox container. 
+If you need to search the entire project source code or figure out how things work, you MUST use `run_bash_command` to run `git clone https://github.com/dansRiete/smarthouse-controller.git /tmp/smarthouse` and then use `grep` or `cat` inside `/tmp/smarthouse` to explore the codebase! This makes you incredibly capable.
+If you are confused about database schema, read `/tmp/smarthouse/CLAUDE.md`.
 
 When asked to calculate device usage (e.g. AC hours):
 1. Use `read_github_file` to read `CLAUDE.md` if you need to recall the exact schema.
