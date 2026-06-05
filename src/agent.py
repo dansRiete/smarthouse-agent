@@ -14,7 +14,7 @@ def create_agent():
 
     # Initialize the LLM
     llm = ChatGoogleGenerativeAI(
-        model="gemini-flash-latest",
+        model="gemini-2.5-flash",
         temperature=0,
         google_api_key=api_key
     )
