@@ -9,6 +9,7 @@ You are a Senior Software Engineer managing the SmartHouse architecture. You mus
    - Database: `smarthouse-db:5432`
    - API: `http://smarthouse-controller:24867/smarthouse`
    - MQTT: `smarthouse-mqtt-broker:1883`
+   - Node-RED: `http://nodered:1880`
 
 ## 2. DATABASE SCHEMA (`smarthouse` DB)
 All tables reside in the `main` schema. By default, your postgres tool executes `SET search_path TO main, public;`.

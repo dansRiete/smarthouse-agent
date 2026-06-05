@@ -2,7 +2,7 @@ import requests
 import json
 from langchain.tools import tool
 
-NODE_RED_URL = "http://192.168.0.201:31880/flows"
+NODE_RED_URL = "http://nodered:1880/flows"
 
 @tool
 def read_node_red_flows(query: str = "") -> str:
